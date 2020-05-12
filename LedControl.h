@@ -1,7 +1,7 @@
 #ifndef LED_CONTROL_H
 #define LED_CONTROL_H
 
-#include <Adafruit_NeoPixel.h>
+#include "Adafruit_NeoPixel.h"
 
 #define MAX_LED 92
 #define LED_PIN 6
@@ -12,13 +12,19 @@
 #define MOVE_COLOR_FIRST  255-decimalPart, 0, 0
 #define OFF_COLOR         0, 0, 0
 
-#include <stdint.h>
+typedef unsigned int uint;
+
+struct UnitParams{
+  uint firstPin;
+  uint numberOfStrips;
+  uint numberOfLeds;
+};
 
 class LedStrip{
   public:
-    LedStrip(Adafruit_NeoPixel strip);
+    LedStrip(uint numberOfPins, uint pin, int pixelFormat);
     uint32_t getColor(int Red, int Green, int Blue);
-    void updateLEDs(double startingPoint, int arrayLength, uint32_t colorArray[]);
+    void updateLEDs(int startingPoint, int arrayLength, uint32_t colorArray[]);
     LedStrip(){}
 
   private:
@@ -27,15 +33,15 @@ class LedStrip{
 
 class LedUnit{
   public:
-    LedUnit(LedStrip* ledStrips, int numberOfStrips): numberOfStrips(numberOfStrips), ledStrips(ledStrips){}
+    LedUnit(UnitParams unitParams);
     ~LedUnit();
     
-  protected: 
+  protected:
+    LedUnit(){}
     void sendDataToStrip(double lowestPosition, int elevatorSize, int doorState);
 
   private:
     int numberOfStrips;
-    LedUnit();
     LedStrip* ledStrips;
 };
 #endif

@@ -1,6 +1,5 @@
 #include "ElevatorTasker.h"
-
-#define INTERRUPT_PIN 
+#define INTERRUPT_PIN 1
 
 uint numberOfStrips = 1;
 uint numberOfUnits = 1;
@@ -14,16 +13,23 @@ double acceleration = 2.0;
 
 TaskerParams taskerParams = TaskerParams{numberOfUnits, numberOfStrips, stripsPerUnit, ledsPerStrip};
 ElevatorParams elevatorParams = ElevatorParams{floorLength, spaceLength, numberOfFloors, maxVelocity, acceleration};
-ElevatorTasker elevator = ElevatorFactory::newInstance(ElevatorFactory::FIRST, taskerParams, elevatorParams);
+ElevatorTasker* elevator;
+
+unsigned long timeEnd = 0;
 
 void onButtonPressed(){
   
 }
 
 void setup() {
-  //attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), onButtonPressed, RISING)
-  
+  elevator = ElevatorFactory::newInstance(ElevatorFactory::FIRST, taskerParams, elevatorParams);
+  elevator->setObservers();
+  for(int i = 0; i < 3; i++){
+    elevator->addPendingTask(3-i);
+  }
+  timeEnd = millis();
 }
 void loop() {
-  
+  elevator->updateForInterval(double((timeEnd-millis())/1000));
+  timeEnd = millis();
 }

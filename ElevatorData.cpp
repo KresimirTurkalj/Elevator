@@ -1,16 +1,17 @@
 #include "ElevatorData.h"
 
-ElevatorData::ElevatorData(ElevatorParams elevatorParams){
+ElevatorData::ElevatorData(ElevatorParams elevatorParams): TargetObservable(){
   numberOfFloors = elevatorParams.numberOfFloors;
   floorLength = elevatorParams.floorLength;
   spaceLength = elevatorParams.spaceLength;
   numberOfLeds = elevatorParams.numberOfFloors * elevatorParams.floorLength + (elevatorParams.numberOfFloors - 1) * elevatorParams.spaceLength;
-  maximumVelocity = maximumVelocity;
-  acceleration = acceleration;
+  maximumVelocity = elevatorParams.maximumVelocity;
+  acceleration = elevatorParams.acceleration;
   currentPosition = 0.0;
   currentVelocity = 0.0;
   targetFloor = 1;
   doorState = 0;
+  doorCheck = 0;
 }
 
 void ElevatorData::setTargetFloor(uint targetFloor){
@@ -52,7 +53,11 @@ bool ElevatorData::isBreakRegion(){
 }
 
 bool ElevatorData::isAccelerateRegion(){
-  return (currentVelocity < maximumVelocity && currentPosition != getFloorPosition());
+  return (absVelocity() < maximumVelocity && currentPosition != getFloorPosition());
+}
+
+double ElevatorData::absVelocity(){
+  return (currentVelocity > 0) ? currentVelocity : -currentVelocity;
 }
 
 bool ElevatorData::isElevatorAbove(){
@@ -64,12 +69,7 @@ bool ElevatorData::isElevatorBelow(){
 }
 
 bool ElevatorData::isFullStop(double interval){
-  if(currentVelocity > 0){
-    return currentVelocity < interval*acceleration;
-  }
-  if(currentVelocity > 0){
-    return currentVelocity > -interval*acceleration;
-  }
+  return absVelocity() < interval*acceleration; 
 }
 
 bool ElevatorData::isElevatorAtTargetFloor(){
@@ -84,6 +84,7 @@ void ElevatorData::openAndCloseDoor(){
     }
     else if(doorState == 0){
       doorCheck = 0;
+      targetReached();
     }
   }
 }

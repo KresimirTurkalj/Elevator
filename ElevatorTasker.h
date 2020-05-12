@@ -2,12 +2,7 @@
 #define ELEVATOR_TASKER_H
 
 #include "ElevatorUnit.h"
-#include "TaskObservation.h"
-
-struct Task{
-  uint targetFloor;
-  Task* futureTask;
-};
+#include "Observation.h"
 
 struct TaskerParams{
    uint numberOfUnits;
@@ -18,39 +13,31 @@ struct TaskerParams{
 
 class ElevatorTasker: public TaskObserver{
   public:
-  virtual void addTask(uint targetFloor);
-  ElevatorTasker(TaskerParams taskerParams, ElevatorParams elevatorParams);
-  ~ElevatorTasker();
+    ElevatorTasker(TaskerParams taskerParams, ElevatorParams elevatorParams);
+    ~ElevatorTasker();
+    virtual void addTaskToUnit(){}
+    void addPendingTask(uint targetFloor);   
+    void updateForInterval(double interval);
+    void setObservers();
   
   protected:
-    Task** currentTasks;
+    Task* pendingTaskFirst;
+    ElevatorUnit* elevatorUnits;
 
-    void addTaskAtUnit(uint targetFloor, uint unitNumber);
-    void endTaskAtUnit(uint unitNumber);
+    void addTaskAtUnit(uint targetFloor, uint unitNumber); 
+    void deleteFirstPendingTask();
+    void deleteAllPendingTasks();
     uint getNumberOfUnits();
     bool allElevatorsAreIdle();
     
   private:
-    ElevatorUnit* elevatorUnits;
     uint numberOfUnits;
-    
-    void initCurrentTasks();
-    void deleteFirstTaskAtUnit(uint unitNumber);
-    void deleteAllTasks();
-    ElevatorController();
 };
 
 class ElevatorTaskerFirst: public ElevatorTasker{
   public:
-     ElevatorTaskerFirst(TaskerParams taskerParams,ElevatorParams elevatorParams):ElevatorTasker(taskerParams, elevatorParams){pendingTaskList = NULL;}
-     ~ElevatorTaskerFirst();
-     void addTask(uint targetFloor);
-     void onTaskChanged();
-     
-  private:
-    Task* pendingTaskList;
-
-    void deleteFirstPendingTask();
+     ElevatorTaskerFirst(TaskerParams taskerParams, ElevatorParams elevatorParams):ElevatorTasker(taskerParams, elevatorParams){}
+     void addTaskToUnit();
 };
 
 class ElevatorFactory{
@@ -60,7 +47,7 @@ class ElevatorFactory{
     static const int TIME = 3;
     static const int OPTIMAL = 4;
     
-    static ElevatorTasker newInstance(int sort, TaskerParams taskerParams, ElevatorParams elevatorParams);
+    static ElevatorTasker* newInstance(int sort, TaskerParams taskerParams, ElevatorParams elevatorParams);
 };
 
 #endif

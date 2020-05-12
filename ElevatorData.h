@@ -1,7 +1,8 @@
 #ifndef ELEVATOR_DATA_H
 #define ELEVATOR_DATA_H
-
 #define MAX_FLOOR 8
+
+#include "Observation.h"
 
 typedef unsigned int uint;
 
@@ -13,17 +14,19 @@ struct ElevatorParams{
     double acceleration;
 };
 
-class ElevatorData {
+class ElevatorData: public TargetObservable{
   public:
     ElevatorData(ElevatorParams elevatorParams);
     void setTargetFloor(uint targetFloor);
     uint getNumberOfRequiredLeds();
 
   protected:
-    void updateCurrentState(double interval);
     double currentPosition;
     uint floorLength;
     int doorState;
+
+    ElevatorData(){}
+    void updateCurrentState(double interval);
   
   private:
     uint spaceLength;
@@ -35,7 +38,6 @@ class ElevatorData {
     uint targetFloor;
     uint numberOfLeds;
 
-    ElevatorData();
     void setNumberOfLeds();
     bool isBreakRegion();
     bool isAccelerateRegion();
@@ -45,6 +47,7 @@ class ElevatorData {
     bool isElevatorAtTargetFloor();
     void openAndCloseDoor();
     uint getFloorPosition();
+    double absVelocity();
     double getDistance();
 };
 #endif
