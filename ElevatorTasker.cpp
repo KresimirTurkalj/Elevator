@@ -1,87 +1,77 @@
 #include "ElevatorTasker.h"
 
-ElevatorTasker::ElevatorTasker(TaskerParams taskerParams,ElevatorParams elevatorParams): TaskObserver(){
-  numberOfUnits = taskerParams.numberOfUnits;
-  elevatorUnits = new ElevatorUnit[numberOfUnits];
-  pendingTaskFirst = NULL;
-  for(uint i = 0; i < taskerParams.numberOfUnits; i++){ //Jednako podijeli stripove i počne od pin 2
-    elevatorUnits[i] = ElevatorUnit(elevatorParams, UnitParams{i+2, taskerParams.stripsPerUnit});
+ElevatorTasker::ElevatorTasker(): Observer(){
+  assignedTasks = new Task*[NUMBER_OF_UNITS];
+  for(int i = 0; i < NUMBER_OF_UNITS; i++){
+    assignedTasks[i] = NULL;
   }
+  pendingTasks = NULL;
 }
 
 ElevatorTasker::~ElevatorTasker(){
-  deleteAllPendingTasks();
-  delete[] elevatorUnits;
+  deleteAllTasks();
 }
 
 void ElevatorTasker::addPendingTask(uint targetFloor){
-  Task *task, *newTask = new Task;
-  newTask->targetFloor = targetFloor;
-  newTask->futureTask = NULL;
-  if(pendingTaskFirst == NULL){ pendingTaskFirst = newTask; }
+  Task *task, *newTask = new Task{targetFloor, NULL};
+  if(pendingTasks == NULL){ pendingTasks = newTask; }
   else{
-  	task = pendingTaskFirst;
-  	while(task->futureTask != NULL){
-    	task = task->futureTask;
-  	}
-  	task->futureTask = newTask;
+    task = pendingTasks;
+    while(task->nextTask != NULL){
+      task = task->nextTask;
+    }
+    task->nextTask = newTask;
   }
-  addTaskToUnit();
+  assignTask();
 }
 
 void ElevatorTasker::updateForInterval(double interval){
-  for(int i = 0; i < numberOfUnits; i++){
+  for(int i = 0; i < NUMBER_OF_UNITS; i++){
     elevatorUnits[i].updateForInterval(interval);
   }
 }
 
-void ElevatorTasker::setObservers() {
-    for (int i = 0; i < numberOfUnits; i++){
+void ElevatorTasker::setParams() {
+    for (int i = 0; i < NUMBER_OF_UNITS; i++){
         elevatorUnits[i].setObserver(this);
+        elevatorUnits[i].setFirstPin(2+NUMBER_OF_UNITS*i);
     }
 }
 
-void ElevatorTasker::addTaskAtUnit(uint targetFloor, uint unitNumber){
-  elevatorUnits[unitNumber].addTask(targetFloor);
+Task* ElevatorTasker::popTask(Task *task){ //Ako se izvede preko klase, neće trebati argument i povratna
+  Task *tempTask = task;
+  task = task->nextTask;
+  delete tempTask;
+  return task;
 }
 
-void ElevatorTasker::deleteFirstPendingTask(){
-  Task* tempTask = pendingTaskFirst;
-  pendingTaskFirst = pendingTaskFirst->futureTask;
-  delete tempTask; 
-}
-
-void ElevatorTasker::deleteAllPendingTasks(){
-  while(pendingTaskFirst != NULL){
-    deleteFirstPendingTask();
+void ElevatorTasker::deleteAllTasks(){
+  Task tempTask;
+  while(pendingTasks != NULL){
+    pendingTasks = popTask(pendingTasks);
   }
-}
-
-uint ElevatorTasker::getNumberOfUnits(){
-  return numberOfUnits;  
-}
-
-bool ElevatorTasker::allElevatorsAreIdle(){
-  for(int i = 0; i <numberOfUnits; i++){
-    if(!elevatorUnits[i].isIdle()) return false;
+  for(int i = 0; i < NUMBER_OF_UNITS; i++){
+    while(assignedTasks[i] != NULL)
+    assignedTasks[i] = popTask(assignedTasks[i]);
   }
-  return true;
+  delete assignedTasks;
 }
 
-void ElevatorTaskerFirst::addTaskToUnit(){
-  for(int i = 0; i < getNumberOfUnits(); i++){
-    if(pendingTaskFirst == NULL) {return;}
-    if(elevatorUnits[i].isIdle()){
-      elevatorUnits[i].addTask(pendingTaskFirst->targetFloor);
-      deleteFirstPendingTask();
+void ElevatorTaskerFirst::assignTask(){
+  if(pendingTasks != NULL){
+    for(int i = 0; i < NUMBER_OF_UNITS; i++){
+      if(elevatorUnits[i].isIdle()){
+        elevatorUnits[i].setTargetFloor(pendingTasks->targetFloor);
+        pendingTasks = popTask(pendingTasks);
+      }
     }
   }
 }
 
-ElevatorTasker* ElevatorFactory::newInstance(int sort, TaskerParams taskerParams,ElevatorParams elevatorParams){
+ElevatorTasker* ElevatorFactory::newInstance(int sort){
    switch(sort){
     case FIRST:
-      return new ElevatorTaskerFirst(taskerParams, elevatorParams);
+      return new ElevatorTaskerFirst();
     case DISTANCE:
       //return new ElevatorTaskerDistance(taskerParams, elevatorParams);
     case TIME:
@@ -89,6 +79,6 @@ ElevatorTasker* ElevatorFactory::newInstance(int sort, TaskerParams taskerParams
     case OPTIMAL:
       //return new ElevatorTaskerOptimal(taskerParams, elevatorParams);
     default:
-      return new ElevatorTaskerFirst(taskerParams, elevatorParams);
+      return new ElevatorTaskerFirst();
   }
 }

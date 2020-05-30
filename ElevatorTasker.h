@@ -4,40 +4,37 @@
 #include "ElevatorUnit.h"
 #include "Observation.h"
 
-struct TaskerParams{
-   uint numberOfUnits;
-   uint numberOfStrips;
-   uint stripsPerUnit;
-   uint ledsPerStrip;
+#define NUMBER_OF_UNITS 1
+#define FIRST_PIN 2
+
+struct Task{
+  uint targetFloor;
+  Task* nextTask;
 };
 
-class ElevatorTasker: public TaskObserver{
+class ElevatorTasker: public Observer{
   public:
-    ElevatorTasker(TaskerParams taskerParams, ElevatorParams elevatorParams);
-    ~ElevatorTasker();
-    virtual void addTaskToUnit(){}
+    ElevatorTasker();
+    ~ElevatorTasker(); //moguće moraš novo
+    virtual void assignTask(){}
     void addPendingTask(uint targetFloor);   
     void updateForInterval(double interval);
-    void setObservers();
+    void setParams();
   
   protected:
-    Task* pendingTaskFirst;
-    ElevatorUnit* elevatorUnits;
-
-    void addTaskAtUnit(uint targetFloor, uint unitNumber); 
-    void deleteFirstPendingTask();
-    void deleteAllPendingTasks();
+    Task *pendingTasks;
+    Task **assignedTasks;
+    ElevatorUnit elevatorUnits[NUMBER_OF_UNITS];
+ 
+    Task* popTask(Task *task);
+    void deleteAllTasks();
     uint getNumberOfUnits();
-    bool allElevatorsAreIdle();
-    
-  private:
-    uint numberOfUnits;
 };
 
 class ElevatorTaskerFirst: public ElevatorTasker{
   public:
-     ElevatorTaskerFirst(TaskerParams taskerParams, ElevatorParams elevatorParams):ElevatorTasker(taskerParams, elevatorParams){}
-     void addTaskToUnit();
+     ElevatorTaskerFirst():ElevatorTasker(){}
+     void assignTask();
 };
 
 class ElevatorFactory{
@@ -47,7 +44,7 @@ class ElevatorFactory{
     static const int TIME = 3;
     static const int OPTIMAL = 4;
     
-    static ElevatorTasker* newInstance(int sort, TaskerParams taskerParams, ElevatorParams elevatorParams);
+    static ElevatorTasker* newInstance(int sort);
 };
 
 #endif

@@ -3,36 +3,20 @@
 
 #define NULL 0
 
-class TaskObserver{
+class Observer{
   public:
-    TaskObserver(){}
-    virtual void addTaskToUnit() = 0;
+    Observer(){}
+    virtual void assignTask() = 0;
 };
 
-class TaskObservable{
+class Observable{
   public:
-     TaskObservable(): taskObserver(NULL){}
-     virtual void setObserver(TaskObserver* observer) { this->taskObserver = observer; }
+     Observable(): observer(NULL){}
+     virtual void setObserver(Observer* observer) { this->observer = observer; }
   protected:
-    void taskEnded(){taskObserver->addTaskToUnit();}
+    void taskEnded(){observer->assignTask();}
   private:
-     TaskObserver* taskObserver;
-};
-
-class TargetObserver {
-public:
-    TargetObserver() {}
-    virtual void removeCurrentTask() = 0;
-};
-
-class TargetObservable {
-public:
-    TargetObservable() : targetObserver(NULL) {}
-    virtual void setObserver(TargetObserver* observer) { this->targetObserver = observer; }
-protected:
-    void targetReached() { targetObserver->removeCurrentTask(); }
-private:
-    TargetObserver* targetObserver;
+     Observer* observer;
 };
 
 #endif

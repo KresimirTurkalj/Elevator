@@ -1,53 +1,53 @@
 #ifndef ELEVATOR_DATA_H
 #define ELEVATOR_DATA_H
-#define MAX_FLOOR 8
 
 #include "Observation.h"
 
 typedef unsigned int uint;
 
-struct ElevatorParams{
-    uint floorLength;
-    uint spaceLength;
-    uint numberOfFloors;
-    double maximumVelocity;
-    double acceleration;
-};
+#define DOOR_SLIDE_TIME 1.0
+#define DOOR_STOP_TIME  3.0
+#define FLOOR_LENGTH    4 //Ako mijenjaš ovdje, moraš i u LedControl.h
+#define SPACE_LENGTH    2
+#define NUMBER_OF_LEDS  39
+#define MAX_VELOCITY    2.0
+#define ACCELERATION    2.0
+#define GROUND_FLOOR    0
+#define OPEN_STAGE      1
+#define CLOSE_STAGE     -1
+#define STOP            0
 
-class ElevatorData: public TargetObservable{
+class ElevatorData: public Observable{
   public:
-    ElevatorData(ElevatorParams elevatorParams);
+    ElevatorData();
     void setTargetFloor(uint targetFloor);
-    uint getNumberOfRequiredLeds();
+    bool isIdle();
 
   protected:
-    double currentPosition;
-    uint floorLength;
-    int doorState;
-
-    ElevatorData(){}
+    double currentPosition; //[0,NUMBER_OF_LEDS-FLOOR_LENGTH]
+    int doorStage;          //{OPEN_STAGE,CLOSE_STAGE,STOP}
+    double getDoorPosition();
     void updateCurrentState(double interval);
   
   private:
-    uint spaceLength;
-    double currentVelocity;
-    double acceleration;
-    int doorCheck;
-    double maximumVelocity;
-    uint numberOfFloors;
-    uint targetFloor;
-    uint numberOfLeds;
-
-    void setNumberOfLeds();
+    bool DEBUG = false;
+    double currentVelocity; //[-MAX_VEL,MAX_VEL]
+    double doorPosition;    //[0,1]
+    double doorStall;       //[0,1]
+    uint numberOfFloors;    
+    uint targetFloor;       //[0,numberOfFloors-1]?
+    bool idleState;        
+    
     bool isBreakRegion();
     bool isAccelerateRegion();
     bool isElevatorAbove();
     bool isElevatorBelow();
     bool isFullStop(double interval);
     bool isElevatorAtTargetFloor();
-    void openAndCloseDoor();
+    void moveDoor(double interval);
     uint getFloorPosition();
     double absVelocity();
     double getDistance();
+    void setMaxNumberOfFloors();
 };
 #endif
