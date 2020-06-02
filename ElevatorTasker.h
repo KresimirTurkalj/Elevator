@@ -6,6 +6,7 @@
 
 #define NUMBER_OF_UNITS 1
 #define FIRST_PIN 2
+#define INTERVAL 0.001
 
 struct Task{
   uint targetFloor;
@@ -22,8 +23,7 @@ class ElevatorTasker: public Observer{
     void setParams();
   
   protected:
-    Task *pendingTasks;
-    Task **assignedTasks;
+    Task *pendingTask;
     ElevatorUnit elevatorUnits[NUMBER_OF_UNITS];
  
     Task* popTask(Task *task);

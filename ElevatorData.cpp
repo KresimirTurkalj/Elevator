@@ -9,11 +9,16 @@ ElevatorData::ElevatorData(): Observable(){
   idleState = true;
   doorPosition = 0.0;
   doorStage = OPEN_STAGE;
+  doorStall = 0;
 }
 
 void ElevatorData::setTargetFloor(uint nextFloor){
-  if(targetFloor >= 0 && targetFloor < numberOfFloors) targetFloor = nextFloor;
-  idleState = false;
+  if(targetFloor >= 0 && targetFloor < numberOfFloors){ 
+    targetFloor = nextFloor;
+    Serial.print("Next floor: ");
+    Serial.println(nextFloor);
+    idleState = false;
+  }
 }
 
 bool ElevatorData::isIdle(){
@@ -86,10 +91,11 @@ void ElevatorData::moveDoor(double interval){ //razmisli da izvedeš s intervala
       doorStage = STOP;
     }
     else if(doorPosition <= 0){
+      doorStall = 0;
       doorStage = OPEN_STAGE;
       idleState = true;
+      Serial.println("Task ended!");
       taskEnded();
-      DEBUG = true;
     }
   }
   else if(doorStall < 1){

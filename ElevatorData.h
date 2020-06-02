@@ -30,7 +30,6 @@ class ElevatorData: public Observable{
     void updateCurrentState(double interval);
   
   private:
-    bool DEBUG = false;
     double currentVelocity; //[-MAX_VEL,MAX_VEL]
     double doorPosition;    //[0,1]
     double doorStall;       //[0,1]
