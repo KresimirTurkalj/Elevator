@@ -5,7 +5,7 @@
 
 typedef unsigned int uint;
 
-#define DOOR_SLIDE_TIME 1.0
+#define DOOR_SLIDE_TIME 3.0
 #define DOOR_STOP_TIME  3.0
 #define FLOOR_LENGTH    4 //Ako mijenjaš ovdje, moraš i u LedControl.h
 #define SPACE_LENGTH    2

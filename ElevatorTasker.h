@@ -6,29 +6,26 @@
 
 #define NUMBER_OF_UNITS 1
 #define FIRST_PIN 2
-#define INTERVAL 0.001
-
-struct Task{
-  uint targetFloor;
-  Task* nextTask;
-};
+#define MAX_TASKS 10
+#define EMPTY -1
 
 class ElevatorTasker: public Observer{
   public:
     ElevatorTasker();
-    ~ElevatorTasker(); //moguće moraš novo
     virtual void assignTask(){}
     void addPendingTask(uint targetFloor);   
     void updateForInterval(double interval);
     void setParams();
   
   protected:
-    Task *pendingTask;
+    int pendingTasks[MAX_TASKS];
     ElevatorUnit elevatorUnits[NUMBER_OF_UNITS];
- 
-    Task* popTask(Task *task);
-    void deleteAllTasks();
+    int lastTaskIndex;
+    
+    void popTask();
     uint getNumberOfUnits();
+    bool pendingTasksFull();
+    bool pendingTasksEmpty();
 };
 
 class ElevatorTaskerFirst: public ElevatorTasker{

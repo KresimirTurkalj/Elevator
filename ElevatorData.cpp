@@ -15,8 +15,6 @@ ElevatorData::ElevatorData(): Observable(){
 void ElevatorData::setTargetFloor(uint nextFloor){
   if(targetFloor >= 0 && targetFloor < numberOfFloors){ 
     targetFloor = nextFloor;
-    Serial.print("Next floor: ");
-    Serial.println(nextFloor);
     idleState = false;
   }
 }
@@ -94,7 +92,6 @@ void ElevatorData::moveDoor(double interval){ //razmisli da izvedeš s intervala
       doorStall = 0;
       doorStage = OPEN_STAGE;
       idleState = true;
-      Serial.println("Task ended!");
       taskEnded();
     }
   }

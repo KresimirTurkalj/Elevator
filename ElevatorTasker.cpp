@@ -1,27 +1,16 @@
 #include "ElevatorTasker.h"
 
 ElevatorTasker::ElevatorTasker(): Observer(){
-  pendingTask = NULL;
-}
-
-ElevatorTasker::~ElevatorTasker(){
-  deleteAllTasks();
+  for(int i = 0; i < MAX_TASKS; i++){
+    pendingTasks[i] = EMPTY;
+  }
+  lastTaskIndex = EMPTY;
 }
 
 void ElevatorTasker::addPendingTask(uint targetFloor){
-  Task *task, *newTask = new Task{targetFloor, NULL};
-  Serial.println("New task!");
-  Serial.print("Memory: ");
-  Serial.print((int)newTask);
-  Serial.print("\tTarget: ");
-  Serial.println(newTask->targetFloor);
-  if(pendingTask == NULL){ pendingTask = newTask; }
-  else{
-    task = pendingTask;
-    while(task->nextTask != NULL){
-      task = task->nextTask;
-    }
-    task->nextTask = newTask;
+  if(pendingTasksFull()){
+    lastTaskIndex++;
+    pendingTasks[lastTaskIndex] = targetFloor; 
   }
   assignTask();
 }
@@ -39,58 +28,35 @@ void ElevatorTasker::setParams() {
     }
 }
 
-Task* ElevatorTasker::popTask(Task *task){ //Ako se izvede preko klase, neće trebati argument i povratna
-  Serial.println("Pop!");
-  Serial.print("Memory: ");
-  Serial.print((int)task);
-  Task *tempTask = task;
-  task = task->nextTask;
-  Serial.print("\tMemory: ");
-  Serial.println((int)task);
-  delete tempTask;
-  return task;
-}
-
-void ElevatorTasker::deleteAllTasks(){
-  Task tempTask;
-  while(pendingTask != NULL){
-    pendingTask = popTask(pendingTask);
+void ElevatorTasker::popTask(){ //Ako se izvede preko klase, neće trebati argument i povratna
+  if(pendingTasksFull()){
+    for(int i = 0; i < lastTaskIndex; i++){
+      pendingTasks[i] = pendingTasks[i+1];
+    }
+    pendingTasks[lastTaskIndex] = EMPTY;
+    lastTaskIndex--;
   }
 }
 
 void ElevatorTaskerFirst::assignTask(){
-  Serial.println("Tasks!");
-  Task *task = pendingTask;
-  while(task != NULL){
-    Serial.print("Memory: ");
-    Serial.print((int)task);
-    Serial.print("\tTarget: ");
-    Serial.println(task->targetFloor);
-    task = task->nextTask;
-  }
-  if(pendingTask != NULL){
-    for(int i = 0; i < NUMBER_OF_UNITS; i++){
+  for(int i = 0; i < NUMBER_OF_UNITS; i++){
+    if(pendingTasksEmpty()){
       if(elevatorUnits[i].isIdle()){
-        Serial.println("Task assigned!");
-        Serial.print("Memory: ");
-        Serial.print((int)pendingTask);
-        Serial.print("\tTarget: ");
-        Serial.println(pendingTask->targetFloor);
-        elevatorUnits[i].setTargetFloor(pendingTask->targetFloor);
-        pendingTask = popTask(pendingTask);
+        elevatorUnits[i].setTargetFloor(pendingTasks[0]);
+        popTask();
       }
     }
   }
-  Serial.println("Tasks! after");
-    task = pendingTask; 
-    while(task != NULL){
-      Serial.print("Memory: ");
-      Serial.print((int)task);
-      Serial.print("\tTarget: ");
-      Serial.println(task->targetFloor);
-      task = task->nextTask;
-    }
 }
+
+bool ElevatorTasker::pendingTasksFull(){
+  return lastTaskIndex < MAX_TASKS;
+}
+
+bool ElevatorTasker::pendingTasksEmpty(){
+  return lastTaskIndex > EMPTY;
+}
+
 
 ElevatorTasker* ElevatorFactory::newInstance(int sort){
    switch(sort){

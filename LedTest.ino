@@ -13,9 +13,9 @@ void setup() {
   //attachInterrupt(digitalPinToInterrupt(PIN),buttonPress,RISING);
   elevatorTasker = ElevatorFactory::newInstance(ElevatorFactory::FIRST);
   elevatorTasker->setParams();
+  elevatorTasker->addPendingTask(0);
   elevatorTasker->addPendingTask(1);
-  elevatorTasker->addPendingTask(2);
-  elevatorTasker->addPendingTask(1);
+  elevatorTasker->addPendingTask(0);
 }
 
 void loop() {
