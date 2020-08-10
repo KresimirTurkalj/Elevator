@@ -1,35 +1,23 @@
 #include "ElevatorTasker.h"
-#define INTERRUPT_PIN 1
+#define PIN 2
+ElevatorTasker* elevatorTasker;
+int currentTask = 0;
 
-uint numberOfStrips = 1;
-uint numberOfUnits = 1;
-uint stripsPerUnit = 1;
-uint ledsPerStrip = 39;
-uint floorLength = 4;
-uint spaceLength = 2;
-uint numberOfFloors = 6;
-uint maxVelocity = 2.0;
-double acceleration = 2.0;
-
-TaskerParams taskerParams = TaskerParams{numberOfUnits, numberOfStrips, stripsPerUnit, ledsPerStrip};
-ElevatorParams elevatorParams = ElevatorParams{floorLength, spaceLength, numberOfFloors, maxVelocity, acceleration};
-ElevatorTasker* elevator;
-
-unsigned long timeEnd = 0;
-
-void onButtonPressed(){
-  
+void buttonPress(){
+  elevatorTasker->addPendingTask(++currentTask);
 }
 
 void setup() {
-  elevator = ElevatorFactory::newInstance(ElevatorFactory::FIRST, taskerParams, elevatorParams);
-  elevator->setObservers();
-  for(int i = 0; i < 3; i++){
-    elevator->addPendingTask(3-i);
+  //pinMode(PIN,INPUT_PULLUP);
+  //attachInterrupt(digitalPinToInterrupt(PIN),buttonPress,RISING);
+  elevatorTasker = ElevatorFactory::newInstance(ElevatorFactory::DISTANCE);
+  elevatorTasker->setParams();
+  for(int i = 1; i < 4; i++){
+    elevatorTasker->addPendingTask(i);
   }
-  timeEnd = millis();
+  elevatorTasker->addPendingTask(3);
 }
+
 void loop() {
-  elevator->updateForInterval(double((timeEnd-millis())/1000));
-  timeEnd = millis();
+  elevatorTasker->updateForInterval(0.001);
 }

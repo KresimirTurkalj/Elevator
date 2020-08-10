@@ -1,52 +1,36 @@
 #include "LedControl.h"
 
-LedStrip::LedStrip(uint numberOfPins, uint pin, int pixelFormat): strip(Adafruit_NeoPixel(numberOfPins, pin, pixelFormat)){
-  strip.begin();
-  strip.setBrightness(50);
-  strip.clear();
-  strip.show();
-}
-
-uint32_t LedStrip::getColor(int Red, int Green, int Blue){
-  return strip.Color(Red, Green, Blue);
-}
-
-void LedStrip::updateLEDs(int startingPoint, int arrayLength, uint32_t colorArray[]){
-  strip.clear();
-  for(int i = 0; i < arrayLength;i++){
-    strip.setPixelColor(startingPoint+i,colorArray[i]);
-  }
-  strip.show();
-}
-
-LedUnit::LedUnit(UnitParams unitParams){
-  this->numberOfStrips = unitParams.numberOfStrips;
-  ledStrips = new LedStrip[numberOfStrips];
-  for(int i = 0; i < numberOfStrips; i++){
-    ledStrips[i] = LedStrip(unitParams.numberOfLeds, unitParams.firstPin+i, NEO_GRB + NEO_KHZ800);
+void LedUnit::setFirstPin(uint firstPin){
+  for(int i = 0; i < STRIP_PER_UNIT; i++){
+    ledStrips[i] = Adafruit_NeoPixel(NUMBER_OF_LEDS, firstPin+i, NEO_GRB + NEO_KHZ800);
+    ledStrips[i].begin();
+    ledStrips[i].setBrightness(100);
   }
 }
 
-LedUnit::~LedUnit(){
-  delete ledStrips;
+LedUnit::LedUnit(const LedUnit &obj){
+  for(int i = 0; i < STRIP_PER_UNIT; i++){
+    ledStrips[i] = obj.ledStrips[i];
+  }
 }
 
-void LedUnit::sendDataToStrip(double lowestPosition, int elevatorLength, int doorState){
-  uint32_t *colorArray = new uint32_t[elevatorLength+1];
-  if(doorState > 0){
-    if(doorState > 256) return;
-    for(int i = 0; i < elevatorLength; i++){ colorArray[i] = ledStrips->getColor(DOOR_SLIDE);}
-    colorArray[elevatorLength] = ledStrips->getColor(OFF_COLOR);
+void LedUnit::sendDataToStrip(double lowestPosition, double doorPosition, uint elevatorLength){
+  for(int i = 0; i < STRIP_PER_UNIT; i++){
+    ledStrips[i].clear();
+    if(doorPosition > 0){
+        for(int j = 0; j < elevatorLength; j++){
+          ledStrips[i].setPixelColor(lowestPosition+j,Adafruit_NeoPixel::Color(DOOR_SLIDE));
+        } 
+    }
+    else{
+      int integerPart = (int)lowestPosition;
+      int decimalPart = 1000 * (double)((lowestPosition - integerPart)/3.92);   //<0,1> -> <0,255]
+      ledStrips[i].setPixelColor(integerPart, Adafruit_NeoPixel::Color(MOVE_COLOR_FIRST));
+      for(int j = 1; j < elevatorLength; j++){ 
+        ledStrips[i].setPixelColor(integerPart+j, Adafruit_NeoPixel::Color(MOVE_COLOR));
+      }
+      ledStrips[i].setPixelColor(integerPart+elevatorLength,Adafruit_NeoPixel::Color(MOVE_COLOR_LAST));
+    }
+    ledStrips[i].show();
   }
-  else{
-    int integerPart = (int)lowestPosition;
-    int decimalPart = 1000 * (double)((lowestPosition - integerPart)/3.92);
-    colorArray[0] = ledStrips->getColor(MOVE_COLOR_FIRST);
-    for(int i = 1; i < elevatorLength+1; i++){ colorArray[i] = ledStrips->getColor(MOVE_COLOR); }
-    colorArray[elevatorLength] = ledStrips->getColor(MOVE_COLOR_LAST);
-  }
-  for(int i = 0; i < numberOfStrips; i++){
-    ledStrips[i].updateLEDs(lowestPosition, elevatorLength, colorArray);
-  }
-  delete colorArray;
 }

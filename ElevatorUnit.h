@@ -5,28 +5,13 @@
 #include "LedControl.h"
 #include "Observation.h"
 
-struct Task{
-  uint targetFloor;
-  Task* futureTask;
-};
+#define MAX_TASKS 10
+#define EMPTY -1
 
-class ElevatorUnit : public ElevatorData, public LedUnit, public TargetObserver,public TaskObservable {
+class ElevatorUnit : public ElevatorData, public LedUnit {
   public:
-    ElevatorUnit(): ElevatorData(), LedUnit(), TargetObserver(), TaskObservable(){} //samo kako bih instacirao polje
-    ElevatorUnit(ElevatorParams elevatorParams, UnitParams unitParams) : ElevatorData(elevatorParams), LedUnit(unitParams), TargetObserver(), TaskObservable(), currentTask(NULL) {}
-    ~ElevatorUnit();
+    ElevatorUnit(): ElevatorData(), LedUnit(){}
     void updateForInterval(double milliseconds);
-    void addTask(uint targetFloor);
-    void deleteAllTasks();
-    bool isIdle();
-    void removeCurrentTask();
-    void changeTarget();
-    void setObserver(TaskObserver* observer);
-
-  private:
-    Task* currentTask;
-    
-    void removeFirstTask();
 };
 
 #endif

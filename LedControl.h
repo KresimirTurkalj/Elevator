@@ -3,10 +3,9 @@
 
 #include "Adafruit_NeoPixel.h"
 
-#define MAX_LED 92
-#define LED_PIN 6
-#define DELAY 5
-#define DOOR_SLIDE        255-doorState, doorState, 0
+#define STRIP_PER_UNIT    2
+#define NUMBER_OF_LEDS    28 //Ako mijenjaš ovdje, moraš i u ElevatorData.h, preuredi da ne misliš o ovome
+#define DOOR_SLIDE        255*(1-doorPosition), 255*doorPosition, 0 
 #define MOVE_COLOR_LAST   decimalPart, 0, 0
 #define MOVE_COLOR        255, 0, 0
 #define MOVE_COLOR_FIRST  255-decimalPart, 0, 0
@@ -14,34 +13,14 @@
 
 typedef unsigned int uint;
 
-struct UnitParams{
-  uint firstPin;
-  uint numberOfStrips;
-  uint numberOfLeds;
-};
-
-class LedStrip{
-  public:
-    LedStrip(uint numberOfPins, uint pin, int pixelFormat);
-    uint32_t getColor(int Red, int Green, int Blue);
-    void updateLEDs(int startingPoint, int arrayLength, uint32_t colorArray[]);
-    LedStrip(){}
-
-  private:
-    Adafruit_NeoPixel strip;
-};
-
 class LedUnit{
-  public:
-    LedUnit(UnitParams unitParams);
-    ~LedUnit();
-    
-  protected:
+   public:
     LedUnit(){}
-    void sendDataToStrip(double lowestPosition, int elevatorSize, int doorState);
+    LedUnit(const LedUnit &obj);
+    void setFirstPin(uint firstPin);
+    void sendDataToStrip(double lowestPosition, double doorPosition, uint elevatorLength);
 
   private:
-    int numberOfStrips;
-    LedStrip* ledStrips;
+    Adafruit_NeoPixel ledStrips[STRIP_PER_UNIT];
 };
 #endif

@@ -1,38 +1,29 @@
 #ifndef OBSERVATION_H
 #define OBSERVATION_H
 
+#include <Arduino.h>
+
 #define NULL 0
+#define DEBUG
 
-class TaskObserver{
+class Observer{
   public:
-    TaskObserver(){}
-    virtual void addTaskToUnit() = 0;
+    Observer(){}
+    virtual void taskFinished(unsigned int uintNum) = 0;
 };
 
-class TaskObservable{
+class Observable{
   public:
-     TaskObservable(): taskObserver(NULL){}
-     virtual void setObserver(TaskObserver* observer) { this->taskObserver = observer; }
+      unsigned int unitNum;
+  
+     Observable(){}
+     void setInfo(Observer* obs, int num) { observer = obs; unitNum = num; }
   protected:
-    void taskEnded(){taskObserver->addTaskToUnit();}
+    void taskEnded(){
+      observer->taskFinished(unitNum);
+      }
   private:
-     TaskObserver* taskObserver;
-};
-
-class TargetObserver {
-public:
-    TargetObserver() {}
-    virtual void removeCurrentTask() = 0;
-};
-
-class TargetObservable {
-public:
-    TargetObservable() : targetObserver(NULL) {}
-    virtual void setObserver(TargetObserver* observer) { this->targetObserver = observer; }
-protected:
-    void targetReached() { targetObserver->removeCurrentTask(); }
-private:
-    TargetObserver* targetObserver;
+     Observer* observer;
 };
 
 #endif

@@ -4,50 +4,69 @@
 #include "ElevatorUnit.h"
 #include "Observation.h"
 
-struct TaskerParams{
-   uint numberOfUnits;
-   uint numberOfStrips;
-   uint stripsPerUnit;
-   uint ledsPerStrip;
-};
+#define NUMBER_OF_UNITS 2
+#define FIRST_PIN 3
+#define MAX_DISTANCE 28
 
-class ElevatorTasker: public TaskObserver{
-  public:
-    ElevatorTasker(TaskerParams taskerParams, ElevatorParams elevatorParams);
-    ~ElevatorTasker();
-    virtual void addTaskToUnit(){}
-    void addPendingTask(uint targetFloor);   
+class ElevatorTasker : public Observer {
+public:
+    ElevatorTasker();
+    virtual void assignTask() {}
+    void taskFinished(uint unitNum);
     void updateForInterval(double interval);
-    void setObservers();
-  
-  protected:
-    Task* pendingTaskFirst;
-    ElevatorUnit* elevatorUnits;
+    void setParams();
+    void addPendingTask(uint targetFloor);
 
-    void addTaskAtUnit(uint targetFloor, uint unitNumber); 
-    void deleteFirstPendingTask();
-    void deleteAllPendingTasks();
-    uint getNumberOfUnits();
-    bool allElevatorsAreIdle();
-    
-  private:
-    uint numberOfUnits;
+protected:
+    int pendingTasks[MAX_TASKS];
+    int assignedTasks[MAX_TASKS][NUMBER_OF_UNITS];
+    ElevatorUnit elevatorUnits[NUMBER_OF_UNITS];
+    int lastTaskIndex;
+
+    void popPendingTask();
+    bool pendingTasksFull();
+    bool assignedTasksFull(uint unitNum);
+    bool assignedTasksEmpty(uint unitNum);
+    bool pendingTasksEmpty();
+    virtual void addAssignedTask(uint targetFloor, uint unitNum);
+    bool isTaskAlreadyAdded(uint targetFloor);
+    void popAssignedTask(uint unitNum);
+    void startNewTask(uint unitNum);
 };
 
-class ElevatorTaskerFirst: public ElevatorTasker{
-  public:
-     ElevatorTaskerFirst(TaskerParams taskerParams, ElevatorParams elevatorParams):ElevatorTasker(taskerParams, elevatorParams){}
-     void addTaskToUnit();
+class ElevatorTaskerFirst : public ElevatorTasker {
+public:
+    ElevatorTaskerFirst() :ElevatorTasker() {}
+    void assignTask();
 };
 
-class ElevatorFactory{
-  public:
+class ElevatorTaskerDistance : public ElevatorTasker {
+public:
+    ElevatorTaskerDistance() :ElevatorTasker() {}
+    void assignTask();
+};
+
+class ElevatorTaskerTime : public ElevatorTasker {
+public:
+    ElevatorTaskerTime() :ElevatorTasker() {}
+    void assignTask();
+protected:
+    struct TimeInfo{
+        double timeNeeded;
+        uint position;
+    };
+    TimeInfo getTimeInfo(int unitNum);
+    void addAssignedTask(uint targetFloor, uint unitNum, uint position);
+};
+
+class ElevatorFactory {
+public:
     static const int FIRST = 1;
     static const int DISTANCE = 2;
     static const int TIME = 3;
     static const int OPTIMAL = 4;
-    
-    static ElevatorTasker* newInstance(int sort, TaskerParams taskerParams, ElevatorParams elevatorParams);
+
+    static ElevatorTasker* newInstance(int sort);
 };
 
 #endif
